@@ -127,6 +127,8 @@ def evaluate(model, dataset, args):
     HT5 = 0.0
     NDCG1 = 0.0
     HT1 = 0.0
+    MRR = 0.0
+
     valid_user = 0.0
 
     if usernum>10000:
@@ -160,6 +162,8 @@ def evaluate(model, dataset, args):
 
         valid_user += 1
 
+        MRR += (1/(rank+1))
+
         if rank <= 10:
             NDCG10 += 1 / np.log2(rank + 2)
             HT10 += 1
@@ -173,7 +177,7 @@ def evaluate(model, dataset, args):
             print('.', end="")
             sys.stdout.flush()
 
-    return NDCG10 / valid_user, HT10 / valid_user, NDCG5 / valid_user, HT5 / valid_user, NDCG1 / valid_user, HT1 / valid_user
+    return NDCG10 / valid_user, HT10 / valid_user, NDCG5 / valid_user, HT5 / valid_user, NDCG1 / valid_user, HT1 / valid_user, MRR / valid_user
 
 
 # evaluate on val set
@@ -186,6 +190,7 @@ def evaluate_valid(model, dataset, args):
     HT5 = 0.0
     NDCG1 = 0.0
     HT1 = 0.0
+    MRR = 0.0
     valid_user = 0.0
 
     if usernum>10000:
@@ -217,6 +222,8 @@ def evaluate_valid(model, dataset, args):
 
         valid_user += 1
 
+        MRR += (1/(rank+1))
+
         if rank <= 10:
             NDCG10 += 1 / np.log2(rank + 2)
             HT10 += 1
@@ -230,4 +237,4 @@ def evaluate_valid(model, dataset, args):
             print('.', end="")
             sys.stdout.flush()
 
-    return NDCG10 / valid_user, HT10 / valid_user, NDCG5 / valid_user, HT5 / valid_user, NDCG1 / valid_user, HT1 / valid_user
+    return NDCG10 / valid_user, HT10 / valid_user, NDCG5 / valid_user, HT5 / valid_user, NDCG1 / valid_user, HT1 / valid_user, MRR / valid_user
