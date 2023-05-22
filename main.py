@@ -104,15 +104,15 @@ if __name__ == '__main__':
             adam_optimizer.step()
             print("loss in epoch {} iteration {}: {}".format(epoch, step, loss.item())) # expected 0.4~0.6 after init few epochs
     
-        if epoch % 20 == 0:
+        if epoch % 1 == 0:
             model.eval()
             t1 = time.time() - t0
             T += t1
             print('Evaluating', end='')
             t_test = evaluate(model, dataset, args)
             t_valid = evaluate_valid(model, dataset, args)
-            print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f), test (NDCG@10: %.4f, HR@10: %.4f)'
-                    % (epoch, T, t_valid[0], t_valid[1], t_test[0], t_test[1]))
+            print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f, NDCG@5: %.4f, HR@5: %.4f, NDCG@1: %.4f, HR@1: %.4f), test NDCG@10: %.4f, HR@10: %.4f, NDCG@5: %.4f, HR@5: %.4f, NDCG@1: %.4f, HR@1: %.4f)'
+                    % (epoch, T, t_valid[0], t_valid[1] , t_valid[2], t_valid[3] , t_valid[4], t_valid[5], t_test[0], t_test[1], t_test[2], t_test[3], t_test[4], t_test[5]))
     
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()

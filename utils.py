@@ -5,6 +5,12 @@ import random
 import numpy as np
 from collections import defaultdict
 from multiprocessing import Process, Queue
+from main import args
+import pandas as pd
+
+df = pd.read_csv('data/'+args.dataset+'.txt', sep=' ', usecols=[1], header=None)
+df = df[1].value_counts()
+poplist = list(df.index.values)
 
 # sampler for batch generation
 def random_neq(l, r, s):
@@ -13,6 +19,12 @@ def random_neq(l, r, s):
         t = np.random.randint(l, r)
     return t
 
+def popular_neq(ml, s):
+    res = filter(lambda i: i not in s, poplist)
+    res = list(res)
+    t = res[:ml]
+    t.reverse()
+    return t
 
 def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_queue, SEED):
     def sample():
@@ -25,7 +37,6 @@ def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_que
         neg = np.zeros([maxlen], dtype=np.int32)
         nxt = user_train[user][-1]
         idx = maxlen - 1
-
         ts = set(user_train[user])
         for i in reversed(user_train[user][:-1]):
             seq[idx] = i
@@ -34,6 +45,7 @@ def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_que
             nxt = i
             idx -= 1
             if idx == -1: break
+        neg = popular_neq(maxlen,ts) #popularity sampling
 
         return (user, seq, pos, neg)
 
@@ -109,8 +121,12 @@ def data_partition(fname):
 def evaluate(model, dataset, args):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
 
-    NDCG = 0.0
-    HT = 0.0
+    NDCG10 = 0.0
+    HT10 = 0.0
+    NDCG5 = 0.0
+    HT5 = 0.0
+    NDCG1 = 0.0
+    HT1 = 0.0
     valid_user = 0.0
 
     if usernum>10000:
@@ -144,23 +160,34 @@ def evaluate(model, dataset, args):
 
         valid_user += 1
 
-        if rank < 10:
-            NDCG += 1 / np.log2(rank + 2)
-            HT += 1
+        if rank <= 10:
+            NDCG10 += 1 / np.log2(rank + 2)
+            HT10 += 1
+        if rank <= 5:
+            NDCG5 += 1 / np.log2(rank + 2)
+            HT5 += 1
+        if rank <= 1:
+            NDCG1 += 1 / np.log2(rank + 2)
+            HT1 += 1
         if valid_user % 100 == 0:
             print('.', end="")
             sys.stdout.flush()
 
-    return NDCG / valid_user, HT / valid_user
+    return NDCG10 / valid_user, HT10 / valid_user, NDCG5 / valid_user, HT5 / valid_user, NDCG1 / valid_user, HT1 / valid_user
 
 
 # evaluate on val set
 def evaluate_valid(model, dataset, args):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
 
-    NDCG = 0.0
+    NDCG10 = 0.0
+    HT10 = 0.0
+    NDCG5 = 0.0
+    HT5 = 0.0
+    NDCG1 = 0.0
+    HT1 = 0.0
     valid_user = 0.0
-    HT = 0.0
+
     if usernum>10000:
         users = random.sample(range(1, usernum + 1), 10000)
     else:
@@ -190,11 +217,17 @@ def evaluate_valid(model, dataset, args):
 
         valid_user += 1
 
-        if rank < 10:
-            NDCG += 1 / np.log2(rank + 2)
-            HT += 1
+        if rank <= 10:
+            NDCG10 += 1 / np.log2(rank + 2)
+            HT10 += 1
+        if rank <= 5:
+            NDCG5 += 1 / np.log2(rank + 2)
+            HT5 += 1
+        if rank <= 1:
+            NDCG1 += 1 / np.log2(rank + 2)
+            HT1 += 1
         if valid_user % 100 == 0:
             print('.', end="")
             sys.stdout.flush()
 
-    return NDCG / valid_user, HT / valid_user
+    return NDCG10 / valid_user, HT10 / valid_user, NDCG5 / valid_user, HT5 / valid_user, NDCG1 / valid_user, HT1 / valid_user
